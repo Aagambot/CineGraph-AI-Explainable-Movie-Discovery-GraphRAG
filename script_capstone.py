@@ -1,11 +1,17 @@
 import json
+import os
 from datetime import datetime, timezone
 import pandas as pd
+from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
+load_dotenv()
+
 # 1. Connection configuration
-URI = "bolt://localhost:7687"
-AUTH = ("neo4j", "password")  # Update with your Neo4j Desktop password
+URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+USER = os.getenv("NEO4J_USER", "neo4j")
+PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+AUTH = (USER, PASSWORD)
 driver = GraphDatabase.driver(URI, auth=AUTH)
 
 
@@ -146,8 +152,9 @@ def main():
         print("Schema and constraints are ONLINE.")
 
         # Step 2: Load Movies CSV (subset or full)
-        print("Reading tmdb_5000_movies.csv...")
-        df_movies = pd.read_csv("tmdb_5000_movies.csv")
+        movies_path = "dataset/tmdb_5000_movies.csv" if os.path.exists("dataset/tmdb_5000_movies.csv") else "tmdb_5000_movies.csv"
+        print(f"Reading {movies_path}...")
+        df_movies = pd.read_csv(movies_path)
 
         # Clean null dates or format numbers
         df_movies["release_date"] = df_movies["release_date"].fillna(
@@ -198,8 +205,9 @@ def main():
             )
 
         # Step 3: Load Credits CSV
-        print("Reading tmdb_5000_credits.csv...")
-        df_credits = pd.read_csv("tmdb_5000_credits.csv")
+        credits_path = "dataset/tmdb_5000_credits.csv" if os.path.exists("dataset/tmdb_5000_credits.csv") else "tmdb_5000_credits.csv"
+        print(f"Reading {credits_path}...")
+        df_credits = pd.read_csv(credits_path)
 
         credits_records = []
         for _, row in df_credits.iterrows():
